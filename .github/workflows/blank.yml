@@ -1,18 +1,18 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Update CI
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  issue:
+    types: [opened]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
+env:
+  GITHUB_NAME: JINJITING
+  GITHUB_EMAIL: jinjiting2690@gmail.com
+  GITHUB_TOKEN: ${{ secrets.update_readme_token }}
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -23,14 +23,44 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Configure node cache
+        uses: actions/cache@v2
+        id: node-cache
+        with:
+          path: venv
+          key: pip-1-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            pip-
+
+      - name: Install dependencies
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          python -m pip install --upgrade pip
+          python -m venv venv
+          source venv/bin/activate
+          pip install PyGithub
+        if: steps.pip-cache.outputs.cache-hit != 'true'
+
+      - name: Generate new md # if you fork or clone this repo, please delete the curl line unless you know why
+        run: |
+          source venv/bin/activate
+          python main.py ${{ secrets.G_T }} ${{ github.repository }} --issue_numbe '${{ github.event.issue.number }}'
+          curl -H "Content-Type:application/json" -X POST -d '{"inputs": {}, "ref":"main"}' https://api.github.com/repos/yihong0618/2021/actions/workflows/4756004/dispatches -H "Authorization: token ${{ secrets.G_T }}"
+        
+      - name: Push README
+        uses: github-actions-x/commit@v2.6
+        with:
+          github-token: ${{ secrets.G_T }}
+          commit-message: "Refresh README AND BACK UP"
+          files: README.md BACKUP/
+          rebase: 'true'
+          name: ${{ env.GITHUB_NAME }}
+          email: ${{ env.GITHUB_EMAIL }}
