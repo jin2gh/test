@@ -4,15 +4,23 @@ name: Update CI
 
 # Controls when the action will run. 
 on:
-  issue:
-    types: [opened]
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+  push:
+    branches:
+      - main
+    paths:
+      - main.py
+
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 env:
-  GITHUB_NAME: JINJITING
+  GITHUB_NAME: JIN
   GITHUB_EMAIL: jinjiting2690@gmail.com
-  GITHUB_TOKEN: ${{ secrets.update_readme_token }}
+  GITHUB_TOKEN: ${{ secrets.GEN_README }}
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -30,14 +38,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          node-version: '3.6'
+          node-version: 3.6
 
       - name: Configure node cache
         uses: actions/cache@v2
         id: node-cache
         with:
           path: venv
-          key: pip-1-${{ hashFiles('**/requirements.txt') }}
+          key: pip-1-PyGithub
           restore-keys: |
             pip-
 
@@ -49,18 +57,17 @@ jobs:
           pip install PyGithub
         if: steps.pip-cache.outputs.cache-hit != 'true'
 
-      - name: Generate new md # if you fork or clone this repo, please delete the curl line unless you know why
+      - name: Generate README
         run: |
           source venv/bin/activate
-          python main.py ${{ secrets.G_T }} ${{ github.repository }} --issue_numbe '${{ github.event.issue.number }}'
-          curl -H "Content-Type:application/json" -X POST -d '{"inputs": {}, "ref":"main"}' https://api.github.com/repos/yihong0618/2021/actions/workflows/4756004/dispatches -H "Authorization: token ${{ secrets.G_T }}"
+          python main.py ${{ env.GITHUB_TOKEN }} ${{ github.repository }} --issue_numbe '${{ github.event.issue.number }}'
         
       - name: Push README
         uses: github-actions-x/commit@v2.6
         with:
-          github-token: ${{ secrets.G_T }}
-          commit-message: "Refresh README AND BACK UP"
-          files: README.md BACKUP/
+          # github-token: ${{ env.GITHUB_TOKEN }}
+          commit-message: "chore: build"
+          files: README.md
           rebase: 'true'
           name: ${{ env.GITHUB_NAME }}
           email: ${{ env.GITHUB_EMAIL }}
