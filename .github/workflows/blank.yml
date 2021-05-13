@@ -6,19 +6,17 @@ name: Update CI
 on:
   issues:
     types: [opened, edited]
-  issue_comment:
-    types: [created, edited]
-  push:
-    branches:
-      - main
-    paths:
-      - main.py
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - main.py
 
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 env:
-  GITHUB_NAME: JIN
+  GITHUB_NAME: robot_jin
   GITHUB_EMAIL: jinjiting2690@gmail.com
   GITHUB_TOKEN: ${{ secrets.GEN_README }}
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -36,37 +34,33 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
-          node-version: 3.6
+          python-version: '3.6'
 
       - name: Configure node cache
         uses: actions/cache@v2
         id: node-cache
         with:
-          path: venv
-          key: pip-1-PyGithub
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m venv venv
-          source venv/bin/activate
-          pip install PyGithub
+          pip install -r requirements.txt
         if: steps.pip-cache.outputs.cache-hit != 'true'
 
       - name: Generate README
         run: |
-          source venv/bin/activate
           python main.py ${{ env.GITHUB_TOKEN }} ${{ github.repository }} --issue_numbe '${{ github.event.issue.number }}'
         
       - name: Push README
         uses: github-actions-x/commit@v2.6
         with:
-          # github-token: ${{ env.GITHUB_TOKEN }}
-          commit-message: "chore: build"
+          commit-message: "chore: build ${{  github.event.issue.title }}"
           files: README.md
           rebase: 'true'
           name: ${{ env.GITHUB_NAME }}
