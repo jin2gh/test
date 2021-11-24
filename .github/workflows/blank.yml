@@ -1,67 +1,67 @@
-# This is a basic workflow to help you get started with Actions
+# # This is a basic workflow to help you get started with Actions
 
-name: Update CI
+# name: Update CI
 
-# Controls when the action will run. 
-on:
-  issues:
-    types: [opened, edited]
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - main.py
+# # Controls when the action will run.
+# on:
+#   issues:
+#     types: [opened, edited]
+#   # push:
+#   #   branches:
+#   #     - main
+#   #   paths:
+#   #     - main.py
 
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-env:
-  GITHUB_NAME: robot_jin
-  GITHUB_EMAIL: jinjiting2690@gmail.com
-  GITHUB_TOKEN: ${{ secrets.GEN_README }}
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+#   # Allows you to run this workflow manually from the Actions tab
+#   workflow_dispatch:
+# env:
+#   GITHUB_NAME: robot_jin
+#   GITHUB_EMAIL: jinjiting2690@gmail.com
+#   GITHUB_TOKEN: ${{ secrets.GEN_README }}
+# # A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# jobs:
+#   # This workflow contains a single job called "build"
+#   build:
+#     # The type of runner that the job will run on
+#     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout
-        uses: actions/checkout@v2
+#     # Steps represent a sequence of tasks that will be executed as part of the job
+#     steps:
+#       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+#       - name: Checkout
+#         uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.6'
+#       # Runs a single command using the runners shell
+#       - name: Set up Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: '3.6'
 
-      - name: Configure node cache
-        uses: actions/cache@v2
-        id: node-cache
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            pip-
+#       - name: Configure node cache
+#         uses: actions/cache@v2
+#         id: node-cache
+#         with:
+#           path: ~/.cache/pip
+#           key: pip-${{ hashFiles('**/requirements.txt') }}
+#           restore-keys: |
+#             pip-
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-        if: steps.pip-cache.outputs.cache-hit != 'true'
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+#         if: steps.pip-cache.outputs.cache-hit != 'true'
 
-      - name: Generate README
-        run: |
-          python main.py ${{ env.GITHUB_TOKEN }} ${{ github.repository }} --issue_numbe '${{ github.event.issue.number }}'
-        
-      - name: Push README
-        uses: github-actions-x/commit@v2.6
-        with:
-          commit-message: "chore: build ${{  github.event.issue.title }}"
-          files: README.md
-          rebase: 'true'
-          name: ${{ env.GITHUB_NAME }}
-          email: ${{ env.GITHUB_EMAIL }}
+#       - name: Generate README
+#         run: |
+#           python main.py ${{ env.GITHUB_TOKEN }} ${{ github.repository }} --issue_numbe '${{ github.event.issue.number }}'
+
+#       - name: Push README
+#         uses: github-actions-x/commit@v2.6
+#         with:
+#           commit-message: "chore: build ${{  github.event.issue.title }}"
+#           files: README.md
+#           rebase: 'true'
+#           name: ${{ env.GITHUB_NAME }}
+#           email: ${{ env.GITHUB_EMAIL }}
